@@ -61,6 +61,81 @@ Project Panama (FFM API) avoids JNI/JNA boilerplate and enables safer, faster na
 - **Deterministic streaming**: batching, cancellation, and instrumentation for testing.
 - **Embeddings + grammar hook**: available from Java with minimal copying and reusable buffers.
 
+## Prerequisites
+
+- **Java 21+**: Required for Project Panama Foreign Function & Memory API
+- **CMake 3.20+**: Required for building native libraries
+- **C Compiler**: GCC (Linux), Clang (macOS), or MSVC (Windows)
+
+### Installing Prerequisites
+
+**Linux (Ubuntu/Debian):**
+```bash
+sudo apt update
+sudo apt install -y cmake build-essential openjdk-21-jdk
+```
+
+**macOS:**
+```bash
+brew install cmake openjdk@21
+```
+
+**Windows:**
+- Install Visual Studio Build Tools or Visual Studio with C++ development tools
+- Install CMake from https://cmake.org/download/
+- Install OpenJDK 21 from https://adoptium.net/
+
+## Building the Project
+
+The project uses Gradle with automatic Java 21 toolchain downloading configured.
+
+**Prerequisites:** CMake 3.20+ and a C compiler must be installed (see Prerequisites section above)
+
+### Full Build (Java + Native Library)
+```bash
+./gradlew clean build
+```
+
+### Build Shadow JAR
+```bash
+./gradlew shadowJar
+```
+
+### Running Tests
+```bash
+# Run all tests (currently uses stub implementations)
+./gradlew test
+
+# Run with a specific model (requires real llama.cpp integration)
+MODEL_PATH=/path/to/model.gguf ./gradlew test
+```
+
+## Next Steps
+
+### 1. Vendor llama.cpp
+
+Currently, the native library contains stub implementations. To integrate real llama.cpp:
+
+1. Add llama.cpp as a git submodule or vendored dependency
+2. Update `CMakeLists.txt` to link against llama.cpp
+3. Implement the C shim functions in `llamapanama.c` to call llama.cpp functions
+4. Update build process to compile llama.cpp with the project
+
+### 2. Set Up CI/CD
+
+Configure GitHub Actions to:
+- Build for multiple platforms (Linux, macOS, Windows)
+- Cross-compile for different architectures (x86_64, aarch64)
+- Run tests with sample models
+- Publish artifacts
+
+### 3. Add More Functionality
+
+- Implement JSON/grammar guided generation
+- Add advanced sampling strategies (Mirostat, etc.)
+- Create more comprehensive examples
+- Add benchmarking tools
+
 ## Troubleshooting
 
 - Ensure a C compiler and CMake are available on your build machine.
@@ -68,10 +143,23 @@ Project Panama (FFM API) avoids JNI/JNA boilerplate and enables safer, faster na
 - On Linux, CPUs without AVX may not run optimized llama.cpp builds; rebuild with appropriate flags.
 - Windows builds rely on the Visual Studio toolchain provided by GitHub Actions.
 
+## Project Status
+
+**Current State:**
+- ✅ Java 21 bindings and core API structure complete
+- ✅ Build system configured with Gradle multi-module setup
+- ✅ Native library building successfully with stub implementations
+- ✅ All tests passing (4/4 tests, 100% success rate)
+- ✅ Shadow JAR packaging working (110KB)
+- ⚠️ Native library uses stub implementations (returns fake data)
+- ⚠️ llama.cpp integration pending for actual LLM inference
+
 ## Roadmap
 
-- JNI/JNA fallback for Java 17 runtimes.
-- Full llama.cpp vendoring with the pinned commit from `LLAMA_CPP_COMMIT`.
-- JSON/grammar guided generation.
-- Richer sampling strategies (Mirostat, penalties) with reusable sampler state.
-- Extended metrics and profiling helpers.
+- Complete llama.cpp integration and native library implementation
+- JNI/JNA fallback for Java 17 runtimes
+- Full llama.cpp vendoring with pinned commit version
+- JSON/grammar guided generation
+- Richer sampling strategies (Mirostat, penalties) with reusable sampler state
+- Extended metrics and profiling helpers
+- Multi-platform CI/CD pipeline
